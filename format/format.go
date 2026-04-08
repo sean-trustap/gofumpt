@@ -163,13 +163,36 @@ func File(fset *token.FileSet, file *ast.File, opts Options) {
 		}
 		opts.LangVersion = lang
 	}
+
+	// Collect Init statements from if/for/switch so that applyPost
+	// can suppress call newline consistency inside them.
+	controlFlowInits := map[ast.Stmt]bool{}
+	ast.Inspect(file, func(n ast.Node) bool {
+		switch node := n.(type) {
+		case *ast.IfStmt:
+			if node.Init != nil {
+				controlFlowInits[node.Init] = true
+			}
+		case *ast.ForStmt:
+			if node.Init != nil {
+				controlFlowInits[node.Init] = true
+			}
+		case *ast.SwitchStmt:
+			if node.Init != nil {
+				controlFlowInits[node.Init] = true
+			}
+		}
+		return true
+	})
+
 	f := &fumpter{
 		file:    fset.File(file.Pos()),
 		fset:    fset,
 		astFile: file,
 		Options: opts,
 
-		minSplitFactor: 0.4,
+		minSplitFactor:   0.4,
+		controlFlowInits: controlFlowInits,
 	}
 	var topFuncType *ast.FuncType
 	pre := func(c *astutil.Cursor) bool {
@@ -208,10 +231,17 @@ func File(fset *token.FileSet, file *ast.File, opts Options) {
 		case *ast.BlockStmt:
 			f.blockLevel++
 		}
+		if stmt, ok := c.Node().(ast.Stmt); ok && f.controlFlowInits[stmt] {
+			f.inControlFlowInit++
+		}
 		return true
 	}
 	post := func(c *astutil.Cursor) bool {
 		f.applyPost(c)
+
+		if stmt, ok := c.Node().(ast.Stmt); ok && f.controlFlowInits[stmt] {
+			f.inControlFlowInit--
+		}
 
 		// Reset minSplitFactor and blockLevel.
 		switch node := c.Node().(type) {
@@ -257,6 +287,15 @@ type fumpter struct {
 	// parentFuncTypes is a stack of parent function types,
 	// used to determine return type information when clothing naked returns.
 	parentFuncTypes []*ast.FuncType
+
+	// controlFlowInits is the set of Init statements belonging to if,
+	// for, or switch statements. Used to suppress call argument newline
+	// consistency in these contexts.
+	controlFlowInits map[ast.Stmt]bool
+
+	// inControlFlowInit is incremented when entering an Init statement
+	// of an if/for/switch and decremented when leaving.
+	inControlFlowInit int
 }
 
 func (f *fumpter) commentsBetween(p1, p2 token.Pos) []*ast.CommentGroup {
@@ -886,8 +925,13 @@ func (f *fumpter) applyPost(c *astutil.Cursor) {
 		}
 
 	// The comments for `case *ast.CompositeLit`, above, also apply here.
+	// Skip calls inside if/for/switch init statements, where reformatting
+	// the call would hurt readability of the control flow.
 	case *ast.CallExpr:
 		if len(node.Args) == 0 {
+			break
+		}
+		if f.inControlFlowInit > 0 {
 			break
 		}
 		openLine := f.Line(node.Lparen)

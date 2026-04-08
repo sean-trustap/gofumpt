@@ -91,6 +91,26 @@ func _() {
 		c, d,
 	)
 }
+
+// Calls inside if/for/switch init statements are unchanged.
+func _() {
+	if _, err := f(a, b,
+		c, d); err != nil {
+	}
+}
+
+func _() {
+	for _, err := f(a, b,
+		c, d); err != nil; {
+	}
+}
+
+func _() {
+	switch _, err := f(a, b,
+		c, d); {
+	default:
+	}
+}
 -- foo.go.golden --
 package p
 
@@ -181,4 +201,24 @@ func _() {
 		a, b,
 		c, d,
 	)
+}
+
+// Calls inside if/for/switch init statements are unchanged.
+func _() {
+	if _, err := f(a, b,
+		c, d); err != nil {
+	}
+}
+
+func _() {
+	for _, err := f(a, b,
+		c, d); err != nil; {
+	}
+}
+
+func _() {
+	switch _, err := f(a, b,
+		c, d); {
+	default:
+	}
 }
