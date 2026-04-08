@@ -81,14 +81,18 @@ func NeverSplitResults(argument1, argument2, argument3, argument4, argument5 int
 package p
 
 func _() {
-	if err := f(argument1, argument2, argument3, argument4, argument5, argument6, argument7,
-		argument8, argument9, argument10); err != nil {
+	if err := f(
+		argument1, argument2, argument3, argument4, argument5, argument6, argument7,
+		argument8, argument9, argument10,
+	); err != nil {
 		panic(err)
 	}
 
 	// Tiny arguments to ensure the length calculation is right.
-	if err := f(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, 0,
-		1, 2, 3, 4, 5, 6, 7, 8, 9, 10); err != nil {
+	if err := f(
+		a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z, 0,
+		1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+	); err != nil {
 		panic(err)
 	}
 

@@ -1,0 +1,184 @@
+exec gofumpt -w foo.go
+cmp foo.go foo.go.golden
+
+exec gofumpt -d foo.go.golden
+! stdout .
+
+-- foo.go --
+package p
+
+func f(args ...interface{}) error  { return nil }
+func g(args ...interface{}) string { return "" }
+
+var a, b, c, d, x, y interface{}
+
+// Arguments on the opener line in a multiline call should be moved.
+func _() {
+	_ = f(a, b,
+		c, d)
+}
+
+// Inner call with args spanning lines gets consistent delimiters.
+func _() {
+	_ = f(
+		a, b,
+		g(x,
+			y),
+		c, d,
+	)
+}
+
+// Inner call with closing paren already on its own line.
+func _() {
+	_ = f(
+		a, b,
+		g(x, y,
+		),
+		c, d,
+	)
+}
+
+// Single-line call is unchanged.
+func _() {
+	_ = f(a, b, c, d)
+}
+
+// Already-correct multiline call is unchanged.
+func _() {
+	_ = f(
+		a, b,
+		c, d,
+	)
+}
+
+// Items sharing lines with correct delimiters is unchanged.
+func _() {
+	_ = f(
+		a, b,
+		g(x, y),
+		c, d,
+	)
+}
+
+// Single multiline arg wrapping is unchanged.
+func _() {
+	_ = f(g(
+		a,
+		b,
+	))
+}
+
+// Comments between args in a correct multiline call is unchanged.
+func _() {
+	_ = f(
+		a,
+		// a comment
+		b,
+		c,
+	)
+}
+
+// No args is unchanged.
+func _() {
+	_ = f()
+}
+
+// Leading blank lines before first arg are removed.
+func _() {
+	_ = f(
+
+		a, b,
+		c, d,
+	)
+}
+-- foo.go.golden --
+package p
+
+func f(args ...interface{}) error  { return nil }
+func g(args ...interface{}) string { return "" }
+
+var a, b, c, d, x, y interface{}
+
+// Arguments on the opener line in a multiline call should be moved.
+func _() {
+	_ = f(
+		a, b,
+		c, d,
+	)
+}
+
+// Inner call with args spanning lines gets consistent delimiters.
+func _() {
+	_ = f(
+		a, b,
+		g(
+			x,
+			y,
+		),
+		c, d,
+	)
+}
+
+// Inner call with closing paren already on its own line.
+func _() {
+	_ = f(
+		a, b,
+		g(
+			x, y,
+		),
+		c, d,
+	)
+}
+
+// Single-line call is unchanged.
+func _() {
+	_ = f(a, b, c, d)
+}
+
+// Already-correct multiline call is unchanged.
+func _() {
+	_ = f(
+		a, b,
+		c, d,
+	)
+}
+
+// Items sharing lines with correct delimiters is unchanged.
+func _() {
+	_ = f(
+		a, b,
+		g(x, y),
+		c, d,
+	)
+}
+
+// Single multiline arg wrapping is unchanged.
+func _() {
+	_ = f(g(
+		a,
+		b,
+	))
+}
+
+// Comments between args in a correct multiline call is unchanged.
+func _() {
+	_ = f(
+		a,
+		// a comment
+		b,
+		c,
+	)
+}
+
+// No args is unchanged.
+func _() {
+	_ = f()
+}
+
+// Leading blank lines before first arg are removed.
+func _() {
+	_ = f(
+		a, b,
+		c, d,
+	)
+}

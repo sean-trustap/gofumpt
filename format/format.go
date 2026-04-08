@@ -398,7 +398,8 @@ var rxCommentDirective = regexp.MustCompile(
 		`|#nosec\b` +
 		`|NOSONAR\b` +
 		`|sys(?:nb)?\b` +
-		`)`)
+		`)`,
+)
 
 func (f *fumpter) applyPre(c *astutil.Cursor) {
 	f.splitLongLine(c)
@@ -881,6 +882,56 @@ func (f *fumpter) applyPost(c *astutil.Cursor) {
 			}
 			if f.Line(elem1.End()) == f.Line(elem2.Pos()) {
 				f.addNewline(elem1.End())
+			}
+		}
+
+	// The comments for `case *ast.CompositeLit`, above, also apply here.
+	case *ast.CallExpr:
+		if len(node.Args) == 0 {
+			break
+		}
+		openLine := f.Line(node.Lparen)
+		closeLine := f.Line(node.Rparen)
+		if openLine == closeLine {
+			break
+		}
+
+		newlineAroundElems := false
+		newlineBetweenElems := false
+		lastEnd := node.Lparen
+		lastLine := openLine
+		for i, elem := range node.Args {
+			pos := elem.Pos()
+			comments := f.commentsBetween(lastEnd, pos)
+			if len(comments) > 0 {
+				pos = comments[0].Pos()
+			}
+			if curLine := f.Line(pos); curLine > lastLine {
+				if i == 0 {
+					newlineAroundElems = true
+
+					// Remove leading blank lines if they exist.
+					f.removeLines(openLine+1, curLine)
+				} else {
+					newlineBetweenElems = true
+				}
+			}
+			lastEnd = elem.End()
+			lastLine = f.Line(lastEnd)
+		}
+		if closeLine > lastLine {
+			newlineAroundElems = true
+		}
+
+		if newlineBetweenElems || newlineAroundElems {
+			first := node.Args[0]
+			if openLine == f.Line(first.Pos()) {
+				f.addNewline(node.Lparen + 1)
+				closeLine = f.Line(node.Rparen)
+			}
+			last := node.Args[len(node.Args)-1]
+			if closeLine == f.Line(last.End()) {
+				f.addNewline(node.Rparen)
 			}
 		}
 	}
