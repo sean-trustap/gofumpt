@@ -59,9 +59,7 @@ func FuzzFormat(f *testing.F) {
 
 		// TODO: check calling format.Node directly as well
 
-		qt.Assert(
-			t, qt.Equals(string(orig), src),
-			qt.Commentf("input source bytes were modified"),
-		)
+		qt.Assert(t, qt.Equals(string(orig), src),
+			qt.Commentf("input source bytes were modified"))
 	})
 }
