@@ -924,7 +924,7 @@ func (f *fumpter) applyPost(c *astutil.Cursor) {
 			}
 		}
 
-	// The comments for `case *ast.CompositeLit`, above, also apply here.
+	// The comments for the *ast.CompositeLit case, above, also apply here.
 	// Skip calls inside if/for/switch init statements, where reformatting
 	// the call would hurt readability of the control flow.
 	case *ast.CallExpr:
