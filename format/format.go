@@ -941,7 +941,6 @@ func (f *fumpter) applyPost(c *astutil.Cursor) {
 		}
 
 		newlineAroundElems := false
-		newlineBetweenElems := false
 		lastEnd := node.Lparen
 		lastLine := openLine
 		for i, elem := range node.Args {
@@ -956,8 +955,6 @@ func (f *fumpter) applyPost(c *astutil.Cursor) {
 
 					// Remove leading blank lines if they exist.
 					f.removeLines(openLine+1, curLine)
-				} else {
-					newlineBetweenElems = true
 				}
 			}
 			lastEnd = elem.End()
@@ -967,7 +964,7 @@ func (f *fumpter) applyPost(c *astutil.Cursor) {
 			newlineAroundElems = true
 		}
 
-		if newlineBetweenElems || newlineAroundElems {
+		if newlineAroundElems {
 			first := node.Args[0]
 			if openLine == f.Line(first.Pos()) {
 				f.addNewline(node.Lparen + 1)
@@ -978,6 +975,7 @@ func (f *fumpter) applyPost(c *astutil.Cursor) {
 				f.addNewline(node.Rparen)
 			}
 		}
+
 	// Function parameter, result, and type parameter lists should use
 	// newlines consistently, like composite literals above.
 	case *ast.FuncType:
@@ -993,8 +991,8 @@ func (f *fumpter) applyPost(c *astutil.Cursor) {
 }
 
 // ensureFieldListConsistency ensures that if a field list spans multiple
-// lines, the first field is not on the opening line and the closing
-// delimiter is on its own line.
+// lines and a newline already exists at either end, the first field is not
+// on the opening line and the closing delimiter is on its own line.
 func (f *fumpter) ensureFieldListConsistency(fl *ast.FieldList) {
 	if fl == nil || len(fl.List) == 0 {
 		return
@@ -1008,8 +1006,24 @@ func (f *fumpter) ensureFieldListConsistency(fl *ast.FieldList) {
 		return
 	}
 
+	// For field lists, last.End() and fl.Closing can share the same
+	// byte offset when there is no trailing comma, so addNewline at
+	// the same offset would not separate them. Increment fl.Closing
+	// first, like the existing handleMultiLine does.
+	//
+	// We do this unconditionally (before detection) so that the
+	// newlineAroundElems check below sees the correct closing position.
+	// This ensures idempotency with handleMultiLine, which runs later
+	// in applyPre for BlockStmt and would also move the closing
+	// delimiter.
+	last := fl.List[len(fl.List)-1]
+	if closeLine == f.Line(last.End()) {
+		fl.Closing++
+		f.addNewline(fl.Closing)
+		closeLine = f.Line(fl.Closing)
+	}
+
 	newlineAroundElems := false
-	newlineBetweenElems := false
 	lastEnd := fl.Opening
 	lastLine := openLine
 	for i, field := range fl.List {
@@ -1024,8 +1038,6 @@ func (f *fumpter) ensureFieldListConsistency(fl *ast.FieldList) {
 
 				// Remove leading blank lines if they exist.
 				f.removeLines(openLine+1, curLine)
-			} else {
-				newlineBetweenElems = true
 			}
 		}
 		lastEnd = field.End()
@@ -1035,25 +1047,16 @@ func (f *fumpter) ensureFieldListConsistency(fl *ast.FieldList) {
 		newlineAroundElems = true
 	}
 
-	if newlineBetweenElems || newlineAroundElems {
+	if newlineAroundElems {
 		first := fl.List[0]
 		if openLine == f.Line(first.Pos()) {
 			f.addNewline(fl.Opening + 1)
-		}
-		last := fl.List[len(fl.List)-1]
-		if f.Line(fl.Closing) == f.Line(last.End()) {
-			// Increment Closing before addNewline because
-			// last.End() and fl.Closing can share the same byte
-			// offset when there is no trailing comma.
-			fl.Closing++
-			f.addNewline(fl.Closing)
 		}
 	}
 
 	// Remove any blank lines between the last field and the closing
 	// delimiter. These can be left over by other transformations such
 	// as mergeAdjacentFields.
-	last := fl.List[len(fl.List)-1]
 	lastEndLine := f.Line(last.End())
 	closingLine := f.Line(fl.Closing)
 	if closingLine > lastEndLine+1 {

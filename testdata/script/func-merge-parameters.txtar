@@ -56,9 +56,11 @@ func dontMergeDifferentKinds(format string, args ...string) {}
 
 func dontMergeDifferentTypesReturn() (n int, err error) {}
 
-func mergeIgnoresPositions(a func(x int), b func(
-	x int,
-)) {
+func mergeIgnoresPositions(
+	a func(x int), b func(
+		x int,
+	),
+) {
 }
 
 type xint int

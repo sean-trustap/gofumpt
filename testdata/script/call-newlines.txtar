@@ -121,20 +121,16 @@ var a, b, c, d, x, y interface{}
 
 // Arguments on the opener line in a multiline call should be moved.
 func _() {
-	_ = f(
-		a, b,
-		c, d,
-	)
+	_ = f(a, b,
+		c, d)
 }
 
 // Inner call with args spanning lines gets consistent delimiters.
 func _() {
 	_ = f(
 		a, b,
-		g(
-			x,
-			y,
-		),
+		g(x,
+			y),
 		c, d,
 	)
 }

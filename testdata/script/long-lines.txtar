@@ -143,8 +143,10 @@ func LongButNotWorthSplitting(argument1, argument2, argument3, argument4, argume
 
 // This line goes well past the limit and it should be split.
 // Note that it has a nested func type in a parameter.
-func TooLongWithFuncParam(fn func(int) (int, error), argument1, argument2, argument3, argument4,
-	argument5, argument6, argument7, argument8, argument9, argument10 int) bool {
+func TooLongWithFuncParam(
+	fn func(int) (int, error), argument1, argument2, argument3, argument4,
+	argument5, argument6, argument7, argument8, argument9, argument10 int,
+) bool {
 }
 
 // This is like LongButNotWorthSplitting, but with a func parameter.
