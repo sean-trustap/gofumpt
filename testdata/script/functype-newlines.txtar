@@ -61,6 +61,25 @@ type I interface {
 	Method(a int, b string,
 		c bool) error
 }
+
+// Func type params on opener line in multiline should be moved.
+func F[A any, B any,
+	C any]() {
+}
+
+// Type spec type params on opener line in multiline should be moved.
+type Pair[A any, B any,
+	C any] struct{}
+
+// Single-line type params are unchanged.
+func G[A any, B any]() {}
+
+// Already-correct multiline type params are unchanged.
+type Multi[
+	A any,
+	B any,
+	C any,
+] struct{}
 -- foo.go.golden --
 package p
 
@@ -126,3 +145,26 @@ type I interface {
 		c bool,
 	) error
 }
+
+// Func type params on opener line in multiline should be moved.
+func F[
+	A any, B any,
+	C any,
+]() {
+}
+
+// Type spec type params on opener line in multiline should be moved.
+type Pair[
+	A any, B any,
+	C any,
+] struct{}
+
+// Single-line type params are unchanged.
+func G[A any, B any]() {}
+
+// Already-correct multiline type params are unchanged.
+type Multi[
+	A any,
+	B any,
+	C any,
+] struct{}

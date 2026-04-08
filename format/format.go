@@ -978,11 +978,17 @@ func (f *fumpter) applyPost(c *astutil.Cursor) {
 				f.addNewline(node.Rparen)
 			}
 		}
-	// Function parameter and result lists should use newlines
-	// consistently, like composite literals above.
+	// Function parameter, result, and type parameter lists should use
+	// newlines consistently, like composite literals above.
 	case *ast.FuncType:
+		f.ensureFieldListConsistency(node.TypeParams)
 		f.ensureFieldListConsistency(node.Params)
 		f.ensureFieldListConsistency(node.Results)
+
+	// Type definition type parameter lists should use newlines
+	// consistently.
+	case *ast.TypeSpec:
+		f.ensureFieldListConsistency(node.TypeParams)
 	}
 }
 
