@@ -57,7 +57,8 @@ func dontMergeDifferentKinds(format string, args ...string) {}
 func dontMergeDifferentTypesReturn() (n int, err error) {}
 
 func mergeIgnoresPositions(a func(x int), b func(
-	x int)) {
+	x int,
+)) {
 }
 
 type xint int
@@ -110,7 +111,8 @@ func dontMergeDifferentKinds(format string, args ...string) {}
 
 func dontMergeDifferentTypesReturn() (n int, err error) {}
 
-func mergeIgnoresPositions(a, b func(x int),
+func mergeIgnoresPositions(
+	a, b func(x int),
 ) {
 }
 

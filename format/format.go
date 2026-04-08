@@ -1043,6 +1043,16 @@ func (f *fumpter) ensureFieldListConsistency(fl *ast.FieldList) {
 			f.addNewline(fl.Closing)
 		}
 	}
+
+	// Remove any blank lines between the last field and the closing
+	// delimiter. These can be left over by other transformations such
+	// as mergeAdjacentFields.
+	last := fl.List[len(fl.List)-1]
+	lastEndLine := f.Line(last.End())
+	closingLine := f.Line(fl.Closing)
+	if closingLine > lastEndLine+1 {
+		f.removeLines(lastEndLine+1, closingLine)
+	}
 }
 
 func (f *fumpter) splitLongLine(c *astutil.Cursor) {
