@@ -978,6 +978,70 @@ func (f *fumpter) applyPost(c *astutil.Cursor) {
 				f.addNewline(node.Rparen)
 			}
 		}
+	// Function parameter and result lists should use newlines
+	// consistently, like composite literals above.
+	case *ast.FuncType:
+		f.ensureFieldListConsistency(node.Params)
+		f.ensureFieldListConsistency(node.Results)
+	}
+}
+
+// ensureFieldListConsistency ensures that if a field list spans multiple
+// lines, the first field is not on the opening line and the closing
+// delimiter is on its own line.
+func (f *fumpter) ensureFieldListConsistency(fl *ast.FieldList) {
+	if fl == nil || len(fl.List) == 0 {
+		return
+	}
+	if !fl.Opening.IsValid() || !fl.Closing.IsValid() {
+		return
+	}
+	openLine := f.Line(fl.Opening)
+	closeLine := f.Line(fl.Closing)
+	if openLine == closeLine {
+		return
+	}
+
+	newlineAroundElems := false
+	newlineBetweenElems := false
+	lastEnd := fl.Opening
+	lastLine := openLine
+	for i, field := range fl.List {
+		pos := field.Pos()
+		comments := f.commentsBetween(lastEnd, pos)
+		if len(comments) > 0 {
+			pos = comments[0].Pos()
+		}
+		if curLine := f.Line(pos); curLine > lastLine {
+			if i == 0 {
+				newlineAroundElems = true
+
+				// Remove leading blank lines if they exist.
+				f.removeLines(openLine+1, curLine)
+			} else {
+				newlineBetweenElems = true
+			}
+		}
+		lastEnd = field.End()
+		lastLine = f.Line(lastEnd)
+	}
+	if closeLine > lastLine {
+		newlineAroundElems = true
+	}
+
+	if newlineBetweenElems || newlineAroundElems {
+		first := fl.List[0]
+		if openLine == f.Line(first.Pos()) {
+			f.addNewline(fl.Opening + 1)
+		}
+		last := fl.List[len(fl.List)-1]
+		if f.Line(fl.Closing) == f.Line(last.End()) {
+			// Increment Closing before addNewline because
+			// last.End() and fl.Closing can share the same byte
+			// offset when there is no trailing comma.
+			fl.Closing++
+			f.addNewline(fl.Closing)
+		}
 	}
 }
 

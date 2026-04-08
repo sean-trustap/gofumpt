@@ -33,7 +33,8 @@ func FuzzFormat(f *testing.F) {
 		}
 	}
 
-	f.Fuzz(func(t *testing.T, src string,
+	f.Fuzz(func(
+		t *testing.T, src string,
 		majorVersion int8, // Empty version if negative, 1.N otherwise.
 		extraRules bool,
 	) {

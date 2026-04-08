@@ -296,13 +296,15 @@ func _() {
 	}
 }
 
-func multilineParams(p1 string,
+func multilineParams(
+	p1 string,
 	p2 string,
 ) {
 	println("body")
 }
 
-func multilineParamsUnambiguous(p1 string,
+func multilineParamsUnambiguous(
+	p1 string,
 	p2 string,
 ) {
 	println("body")
@@ -423,13 +425,15 @@ func multilineParamsOneParamReturningMultiLineValues(
 	return "", nil
 }
 
-func multilineResults() (p1 string,
+func multilineResults() (
+	p1 string,
 	p2 string,
 ) {
 	println("body")
 }
 
-func multilineResultsUnambiguous() (p1 string,
+func multilineResultsUnambiguous() (
+	p1 string,
 	p2 string,
 ) {
 	println("body")
@@ -458,19 +462,22 @@ func f2(
 	return "", nil
 }
 
-func multilineResultsMultipleEmptyLines() (p1 string,
+func multilineResultsMultipleEmptyLines() (
+	p1 string,
 	p2 string,
 ) {
 	println("body")
 }
 
-func multilineParamsWithoutEmptyLine(p1 string,
+func multilineParamsWithoutEmptyLine(
+	p1 string,
 	p2 string,
 ) {
 	println("body")
 }
 
-func multilineParamsWithoutEmptyLineWithComment(p1 string,
+func multilineParamsWithoutEmptyLineWithComment(
+	p1 string,
 	p2 string,
 ) {
 	// comment
@@ -479,7 +486,8 @@ func multilineParamsWithoutEmptyLineWithComment(p1 string,
 
 // Same as the others above, but with a single result parameter without
 // parentheses. This used to cause token.File.Offset crashes.
-func f(p1 string,
+func f(
+	p1 string,
 	p2 string,
 ) int {
 	println("body")
@@ -487,17 +495,21 @@ func f(p1 string,
 }
 
 func a() {
-	f := func(s string,
+	f := func(
+		s string,
 		b bool,
 	) {
 		// foo
 	}
 }
 
-func f(p1 string,
-	p2 string) (int, string,
-
-/* baz */) {
+func f(
+	p1 string,
+	p2 string,
+) (
+	int, string,
+	/* baz */
+) {
 	println("body")
 	return 0, ""
 }

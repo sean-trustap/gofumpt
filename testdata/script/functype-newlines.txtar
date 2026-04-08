@@ -1,0 +1,128 @@
+exec gofumpt -w foo.go
+cmp foo.go foo.go.golden
+
+exec gofumpt -d foo.go.golden
+! stdout .
+
+-- foo.go --
+package p
+
+// Params on opener line in multiline should be moved.
+func _(a int, b string,
+	c bool) {
+}
+
+// Results on opener line in multiline should be moved.
+func _() (a int, b string,
+	c bool) {
+	return 0, "", false
+}
+
+// Func literal with multiline params.
+var _ = func(a int,
+	b string) error {
+	return nil
+}
+
+// Single-line params are unchanged.
+func _(a int, b string, c bool) {
+}
+
+// Already-correct multiline params are unchanged.
+func _(
+	a int,
+	b string,
+	c bool,
+) {
+}
+
+// Single unnamed result is unchanged.
+func _() error {
+	return nil
+}
+
+// Params sharing lines with correct delimiters are unchanged.
+func _(
+	a int, b string,
+	c bool,
+) {
+}
+
+// Results sharing lines with correct delimiters are unchanged.
+func _() (
+	a int, b string,
+	c bool,
+) {
+	return 0, "", false
+}
+
+// Interface method with multiline params.
+type I interface {
+	Method(a int, b string,
+		c bool) error
+}
+-- foo.go.golden --
+package p
+
+// Params on opener line in multiline should be moved.
+func _(
+	a int, b string,
+	c bool,
+) {
+}
+
+// Results on opener line in multiline should be moved.
+func _() (
+	a int, b string,
+	c bool,
+) {
+	return 0, "", false
+}
+
+// Func literal with multiline params.
+var _ = func(
+	a int,
+	b string,
+) error {
+	return nil
+}
+
+// Single-line params are unchanged.
+func _(a int, b string, c bool) {
+}
+
+// Already-correct multiline params are unchanged.
+func _(
+	a int,
+	b string,
+	c bool,
+) {
+}
+
+// Single unnamed result is unchanged.
+func _() error {
+	return nil
+}
+
+// Params sharing lines with correct delimiters are unchanged.
+func _(
+	a int, b string,
+	c bool,
+) {
+}
+
+// Results sharing lines with correct delimiters are unchanged.
+func _() (
+	a int, b string,
+	c bool,
+) {
+	return 0, "", false
+}
+
+// Interface method with multiline params.
+type I interface {
+	Method(
+		a int, b string,
+		c bool,
+	) error
+}
